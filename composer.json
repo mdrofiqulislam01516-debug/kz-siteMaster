@@ -1,0 +1,19 @@
+{
+    "name": "kodezen/kz-sitemaster",
+    "description": "Full site reset + backup/snapshot/restore tools for development environments. Use with extreme caution.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "kodezen team"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "kodezen\\siteMaster\\": "includes/"
+        },
+        "files":[]
+    }
+}
