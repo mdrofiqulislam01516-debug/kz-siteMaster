@@ -4,7 +4,7 @@ namespace kodezen\siteMaster\Admin;
 class kz_siteMaster_site_reset {
 
     function __construct() {
-        add_action( 'admin_init', [ $this, 'handle_reset_form']);
+        add_action( 'admin_post_kz_siteMaster_handle_reset', [ $this, 'handle_reset_form']);
     }
 
     // Handle reset form
@@ -25,6 +25,7 @@ class kz_siteMaster_site_reset {
 
        
         $tables = $wpdb->get_col('SHOW TABLES');
+        
         foreach( $tables as $table ) {
             $wpdb->query("DROP TABLE IF EXISTS $table");
         }
@@ -61,7 +62,7 @@ class kz_siteMaster_site_reset {
         }
 
         
-        wp_redirect( admin_url( 'admin.php?page=kz_siteMaster&reset=done' ) );
+        wp_redirect( admin_url( ) );
         exit;
     }
 }

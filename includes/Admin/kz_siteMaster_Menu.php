@@ -25,19 +25,24 @@ class kz_siteMaster_Menu {
         <!-- Site Reset -->
 
          <div class="wrap">
-            <h1>Site Reset</h1>
-            <p>Type <strong>reset</strong> to confirm full site reset.</p>
-            
-            <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+    <h1>Site Reset</h1>
+    <p>Type <strong>reset</strong> to confirm full site reset.</p>
+    
+    <form method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
 
-                <?php wp_nonce_field('kz_reset_action', 'kz_reset_nonce'); ?>
+        <?php wp_nonce_field('kz_reset_action', 'kz_reset_nonce'); ?>
+        
+        <input type="hidden" name="action" value="kz_siteMaster_handle_reset">
+        <input type="text" name="kz_siteMaster_reset_confirm" placeholder="Type reset here" required>
+        <br><br>
+        <label><input type="checkbox" name="reactivate_theme"> Reactivate current theme</label><br>
+        <label><input type="checkbox" name="reactivate_plugins"> Reactivate all plugins</label><br>
+        <label><input type="checkbox" name="reactivate_self"> Reactivate this plugin</label>
+        <br><br>
+        <button type="submit" class="button button-danger">Site Reset</button>
+    </form>
+</div>
 
-                <input type="hidden" name="action" value="kz_siteMaster_reset">
-                <input type="text" name="kz_siteMaster_reset_confirm" placeholder="Type reset here" required>
-                
-                <button type="submit" class="button button-danger">Site Reset</button>
-            </form>
-        </div>
 
        <!-- Full Site Reset  -->
 

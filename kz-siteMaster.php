@@ -91,7 +91,7 @@ final class kz_siteMaster {
 
             new kodezen\siteMaster\Admin\kz_siteMaster_Menu();
             new kodezen\siteMaster\Admin\kz_siteMaster_fullsite_reset();
-           // new kodezen\siteMaster\Admin\kz_siteMaster_site_reset();
+           new kodezen\siteMaster\Admin\kz_siteMaster_site_reset();
                     
             /**
              * Frontend
