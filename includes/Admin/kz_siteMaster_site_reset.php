@@ -88,6 +88,7 @@ class kz_siteMaster_site_reset {
         }
 
         // Redirect to dashboard
+        
         wp_redirect( admin_url('admin.php?page=kz_siteMaster&sitereset=done') );
         exit;
     }
