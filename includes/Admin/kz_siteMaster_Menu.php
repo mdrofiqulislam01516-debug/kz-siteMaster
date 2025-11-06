@@ -1,12 +1,24 @@
 <?php
 namespace kodezen\siteMaster\Admin;
 
+/**
+ * kz siteMaster Manu 
+ */
+
 class kz_siteMaster_Menu {
+
+    /**
+     * admin menu hook
+     */
     
     function __construct() {
 
         add_action( 'admin_menu', [ $this, 'kz_siteMaster_register_admin_menu' ] );
     }
+
+    /**
+     * menu register
+     */
 
     public function kz_siteMaster_register_admin_menu() {
 
@@ -21,6 +33,10 @@ class kz_siteMaster_Menu {
 
         );
     }
+
+    /**
+     * kz siteMaster render form 
+     */
 
     public function kz_siteMaster_render_plugin_page() {
           

@@ -7,26 +7,20 @@ namespace kodezen\siteMaster\Admin;
 
 class kz_siteMaster_site_reset {
 
-    private $plugin_file;
-
     /**
      * register hook
      */
 
-    function __construct( $plugin_file = null ) {
-        if ( empty( $plugin_file ) ) {
-            $plugin_file = __FILE__ ;
-        }
-        $this->plugin_file = $plugin_file;
+    function __construct( ) {
 
        /**
-        * Enqueue JS
+        * Enqueue js
         */
 
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 
         /**
-         * AJAX
+         * Ajax
          */ 
 
         add_action( 'wp_ajax_kz_siteMaster_handle_reset', [ $this, 'handle_kz_siteMaster_reset_form' ] );
@@ -37,6 +31,7 @@ class kz_siteMaster_site_reset {
      */
 
     public function enqueue_scripts() {
+
         wp_enqueue_script(
             'kz-siteMaster-reset',
             KZ_SITEMASTER_ASSETS . '/js/kz_siteMaster.js',
@@ -60,7 +55,7 @@ class kz_siteMaster_site_reset {
             wp_send_json_error( [ 'message' => 'Permission denied' ] );
         }
 
-        if ( ! check_ajax_referer( 'kz_reset_action', 'kz_reset_nonce', false ) ) {
+        if ( ! check_ajax_referer( 'kz_reset_action', 'kz_reset_nonce' ) ) {
             wp_send_json_error( [ 'message' => 'Nonce verification failed' ] );
         }
 
@@ -71,10 +66,10 @@ class kz_siteMaster_site_reset {
         global $wpdb;
 
         /**
-         * Save current state
+         * Save plugin/theme
          */
 
-        $active_plugins = get_option( 'active_plugins', [] );
+        $active_plugins = get_option( 'active_plugins', ['KZ_siteMaster'] );
         $current_theme  = wp_get_theme()->get_stylesheet();
 
         $reactivate_theme       = ! empty( $_POST[ 'reactivate_theme' ] );
@@ -84,60 +79,103 @@ class kz_siteMaster_site_reset {
         /**
          * Reset all tables except users/usermeta
          */
-
+        
         $tables = $wpdb->get_col( "SHOW TABLES LIKE '{$wpdb->prefix}%'" );
+
         foreach ( $tables as $table ) {
             if ( in_array( $table, [ $wpdb->prefix.'users', $wpdb->prefix.'usermeta' ] ) ) continue;
-            $wpdb->query( "TRUNCATE TABLE $table" );
+            $wpdb->query( "DELETE FROM $table" );
+            $wpdb->query( "ALTER TABLE $table AUTO_INCREMENT = 1" );
         }
-    
+
         /**
-         * Reinstall
+         * wp_install
          */
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         require_once ABSPATH . 'wp-includes/pluggable.php';
 
-        $site_title  = get_bloginfo('name');
-        $admin_user  = 'admin';
-        $admin_email = get_option( 'admin_email' ) ?: 'admin@example.com';
-        $admin_pass  = 'admin';
+        $current_user = wp_get_current_user();
 
-        wp_install(
-            $site_title, 
-            $admin_user, 
-            $admin_email, 
-            true, 
-            '', 
-            $admin_pass
-        );
+        if ( ! $current_user || ! $current_user->ID ) {
+            $admins = get_users([
+                'role'   => 'administrator',
+                'orderby'=> 'ID',
+                'order'  => 'ASC',
+                'number' => 1
+            ]);
 
-        /**
-         * Reactivate plugins
-         */
+            if ( empty( $admins ) ) {
+                wp_send_json_error( [ 'message' => 'No admin user found in database.' ] );
+            }
 
-        $protected_plugin = plugin_basename( $this->plugin_file ); 
-        $plugins_to_restore = array_unique( array_merge( [ $protected_plugin ],     $active_plugins ) ); 
-
-        if ( $reactivate_plugins ) { 
-            update_option( 'active_plugins', $plugins_to_restore ); 
-        } 
-
-        /** 
-        * Reactivate theme 
-        * */ 
-       
-        if ( $reactivate_theme ) { 
-            switch_theme( $current_theme ); 
-        } 
-       
-        /** 
-        * Reactivate this plugin only 
-        */ 
-        if ( $reactivate_this_plugin ) { 
-            activate_plugin( $protected_plugin ); 
+            $current_user = $admins[0];
         }
 
-        wp_send_json_success( [ 'message' => '✅ Site has been successfully reset!' ] );
+        $admin_user  = $current_user->user_login;
+        $admin_email = $current_user->user_email;
+        $old_pass    = $current_user->user_pass;
+        $site_title  = get_option('name');
+        $blog_public = get_option('blog_public');
+        $wplang      = get_option('WPLANG');
+
+        $result = wp_install(
+            $site_title,
+            $admin_user,
+            $admin_email,
+            $blog_public,
+            '',
+            md5(wp_rand()),
+            $wplang
+        );
+
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( [ 'message' => $result->get_error_message() ] );
+        }
+
+        $user_id = $result['user_id'] ?? 0;
+
+        if ( $user_id ) {
+            $wpdb->query( $wpdb->prepare(
+                "UPDATE {$wpdb->users} SET user_pass = %s, user_activation_key = %s WHERE ID = %d",
+                $old_pass,
+                '',
+                $user_id
+            ) );
+        }
+
+        delete_user_meta( $user_id, 'default_password_nag' );
+        delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
+
+        $protected_plugin = 'kz-siteMaster/kz-siteMaster.php';
+        $plugins_to_restore = array_unique( array_merge( $active_plugins ) );
+
+        if ( $reactivate_plugins ) {
+            update_option( 'active_plugins', $plugins_to_restore );
+        }
+
+        if ( $reactivate_theme ) {
+            switch_theme( $current_theme );
+        }
+
+        if ( ! in_array( $protected_plugin, $active_plugins ) ) {
+        $active_plugins[] = $protected_plugin;
+}
+
+
+        if ( $reactivate_this_plugin ) {
+            activate_plugin( $protected_plugin );
+        }
+
+        wp_clear_auth_cookie();
+        wp_set_auth_cookie( $user_id );
+
+        
+        wp_send_json_success( [ 
+            'message' => '✅ Site has been successfully reset!', 
+            'redirect_url' => admin_url('admin.php?page=kz_siteMaster')
+            ] );
+
+            
     }
 }
