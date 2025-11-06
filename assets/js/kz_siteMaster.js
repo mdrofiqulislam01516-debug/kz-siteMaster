@@ -10,7 +10,7 @@ jQuery(document).ready(function ($) {
 
         $.post(kzsiteMaster.ajax_url, formData, function (response) {
             if (response.success) {
-                $('#kz-reset-response').html('<p style="color:green;">✅ ' + response.data.message + '</p>');
+                $('#kz-reset-response').html('<p style="color:green;"> ' + response.data.message + '</p>');
             } else {
                 $('#kz-reset-response').html('<p style="color:red;">❌ ' + response.data.message + '</p>');
             }

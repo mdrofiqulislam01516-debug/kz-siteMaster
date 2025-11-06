@@ -13,7 +13,10 @@ class kz_siteMaster_site_reset {
      * register hook
      */
 
-    function __construct( $plugin_file = true ) {
+    function __construct( $plugin_file = null ) {
+        if ( empty( $plugin_file ) ) {
+            $plugin_file = __FILE__ ;
+        }
         $this->plugin_file = $plugin_file;
 
        /**
@@ -113,29 +116,27 @@ class kz_siteMaster_site_reset {
          * Reactivate plugins
          */
 
-        $protected_plugin = plugin_basename( $this->plugin_file );
+        $protected_plugin = plugin_basename( $this->plugin_file ); 
+        $plugins_to_restore = array_unique( array_merge( [ $protected_plugin ],     $active_plugins ) ); 
 
-// Reactivate all plugins
-if ( $reactivate_plugins ) {
-    $plugins_to_restore = array_unique( array_merge( [ $protected_plugin ], $active_plugins ) );
-    update_option( 'active_plugins', $plugins_to_restore );
-}
+        if ( $reactivate_plugins ) { 
+            update_option( 'active_plugins', $plugins_to_restore ); 
+        } 
 
-// Reactivate theme
-if ( $reactivate_theme ) {
-    switch_theme( $current_theme );
-}
-
-// Reactivate this plugin only (if Reactivate all plugins is NOT checked)
-if ( $reactivate_this_plugin && ! $reactivate_plugins ) {
-
-    // Plugin must exist
-    if ( file_exists( WP_PLUGIN_DIR . '/' . $protected_plugin ) ) {
-        update_option( 'active_plugins', [ $protected_plugin ] );
-    } else {
-        wp_send_json_error( [ 'message' => '❌ Plugin file does not exist: ' . $protected_plugin ] );
-    }
-}
+        /** 
+        * Reactivate theme 
+        * */ 
+       
+        if ( $reactivate_theme ) { 
+            switch_theme( $current_theme ); 
+        } 
+       
+        /** 
+        * Reactivate this plugin only 
+        */ 
+        if ( $reactivate_this_plugin ) { 
+            activate_plugin( $protected_plugin ); 
+        }
 
         wp_send_json_success( [ 'message' => '✅ Site has been successfully reset!' ] );
     }
