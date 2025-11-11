@@ -1,10 +1,8 @@
-
 <!-- Site Reset -->
 
 <div class="wrap">
     <h1>Site Reset</h1>
-    <form id="kz-site-reset-form" method="post">
-        <?php wp_nonce_field('kz_reset_action', 'kz_reset_nonce'); ?>
+    <form id="kz-site-reset-form">
         <input type="hidden" name="action" value="kz_siteMaster_handle_reset">
 
         <p><label><input type="checkbox" class="kz-active-theme" name="reactivate_theme"> Reactivate current theme</label></p>

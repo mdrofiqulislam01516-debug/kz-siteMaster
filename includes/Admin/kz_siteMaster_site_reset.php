@@ -42,6 +42,7 @@ class kz_siteMaster_site_reset {
 
         wp_localize_script('kz-siteMaster-reset', 'kzsiteMaster', [
             'ajax_url' => admin_url( 'admin-ajax.php' ),
+            'nonce' => wp_create_nonce( 'kz_reset_nonce' ),
         ] );
     }
 
@@ -55,7 +56,7 @@ class kz_siteMaster_site_reset {
             wp_send_json_error( [ 'message' => 'Permission denied' ] );
         }
 
-        if ( ! check_ajax_referer( 'kz_reset_action', 'kz_reset_nonce' ) ) {
+        if ( ! check_ajax_referer( 'kz_reset_nonce', 'nonce' ) ) {
             wp_send_json_error( [ 'message' => 'Nonce verification failed' ] );
         }
 
@@ -75,13 +76,6 @@ class kz_siteMaster_site_reset {
         $reactivate_theme       = ! empty( $_POST[ 'reactivate_theme' ] );
         $reactivate_plugins     = ! empty( $_POST[ 'reactivate_plugins' ] );
         $reactivate_this_plugin = ! empty( $_POST[ 'reactivate_this_plugin' ] );
-
-        $protected_plugin  = 'kz-siteMaster/kz-siteMaster.php';
-        $plugin_to_deactivate = array_diff( $active_plugins, [ $protected_plugin ] );
-
-        if ( ! empty( $plugin_to_deactivate ) ) {
-            deactivate_plugins( $plugin_to_deactivate );
-        }
 
         /**
          * Reset all tables except users/usermeta
@@ -104,15 +98,20 @@ class kz_siteMaster_site_reset {
 
         $custom_tables = array_diff($tables, array_merge($core_tables, [$wpdb->prefix.'users', $wpdb->prefix.'usermeta']));
 
-       foreach ( $custom_tables as $tb ) {
-            $wpdb->query('SET foreign_key_checks = 0');           
+        $wpdb->suppress_errors( true );
+        $wpdb->query('SET foreign_key_checks = 0');           
+        
+        foreach ( $custom_tables as $tb ) {
             $wpdb->query( "DROP TABLE IF EXISTS $tb" );
         }
-        
+
         foreach ( $core_tables as $table ) {
-            $wpdb->query( "DELETE FROM $table" );
-            $wpdb->query( "ALTER TABLE $table" );
+            $wpdb->query( "TRUNCATE TABLE $table" );
         }
+        
+        $wpdb->query( 'SET FOREIGN_KEY_CHECKS = 1;' );
+        wp_cache_flush();
+        $wpdb->queries = []; 
 
         /**
          * wp_install
@@ -124,7 +123,6 @@ class kz_siteMaster_site_reset {
 
         $admin_user  = $current_user->user_login;
         $admin_email = $current_user->user_email;
-        $old_pass    = $current_user->user_pass;
         $site_title  = get_option('name');
         $blog_public = get_option('blog_public');
         $wplang      = get_option('WPLANG');
@@ -165,7 +163,7 @@ class kz_siteMaster_site_reset {
 
         wp_clear_auth_cookie();
         wp_set_auth_cookie( $user_id );
-      
+ 
         wp_send_json_success( [ 
             'message' => '✅ Site has been successfully reset!', 
             'redirect_url' => admin_url('admin.php?page=kz_siteMaster')

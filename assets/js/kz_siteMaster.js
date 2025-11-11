@@ -1,26 +1,48 @@
-jQuery(document).ready(function ($) {
-    $('#kz-site-reset-form').on('submit', function (e) {
+jQuery(document).ready(function($) {
+    $('#kz-site-reset-form').on('submit', function(e) {
         e.preventDefault();
+
+        var form = $(this);
+        var responseBox = $('#kz-reset-response');
+
+        var confirmVal = form.find('[name="kz_reset_confirm"]').val();
+        if ( ! confirmVal || confirmVal.toLowerCase() !== 'reset') {
+            responseBox.html('<span style="color:red;">❌ You must type "reset" to confirm.</span>');
+            return;
+        }
 
         if ( ! confirm( "Are you sure you want to reset the site?" ) ) return;
 
-        const formData = $(this).serialize();   
+        responseBox.html('<span style="color:blue;">Processing site reset...</span>');
 
-        $('#kz-reset-response').html('<p style="color:blue;">Processing... Please wait...</p>');
+        $.ajax({
+            url: kzsiteMaster.ajax_url,
+            method: 'POST',
+            data: {
+                action: 'kz_siteMaster_handle_reset',
+                nonce: kzsiteMaster.nonce,
+                reactivate_theme:       form.find('[name="reactivate_theme"]').is(':checked') ? 1 : 0,
+                reactivate_plugins:     form.find('[name="reactivate_plugins"]').is(':checked') ? 1 : 0,
+                reactivate_this_plugin: form.find('[name="reactivate_this_plugin"]').is(':checked') ? 1 : 0,
+                kz_reset_confirm: confirmVal
+            },
+            success: function(res) {
+                if (res.success) {
+                    form[0].reset();
+                    responseBox.html('<span style="color:green;">' + res.data.message + '</span>');
 
-        $.post(kzsiteMaster.ajax_url, formData, function (response) {
-            if (response.success) {
-                $('#kz-reset-response').html('<p style="color:green;"> ' + response.data.message + '</p>');
-                setTimeout(function(){
-                    if(response.data.redirect_url){
-                        window.location.href = response.data.redirect_url;
+                    if (res.data.redirect_url) {
+                        setTimeout(function() {
+                            window.location.href = res.data.redirect_url;
+                        }, 1000);
                     }
-                }, 1000);
-            } else {
-                $('#kz-reset-response').html('<p style="color:red;">❌ ' + response.data.message + '</p>');
+                } else {
+                    responseBox.html('<span style="color:red;">❌ ' + res.data.message + '</span>');
+                }
+            },
+            error: function() {
+                responseBox.html('<span style="color:red;">❌ Something went wrong. Please try again.</span>');
             }
-         }).fail(function () {
-            $('#kz-reset-response').html('<p style="color:red;">❌ AJAX request failed.</p>');
         });
     });
 });
