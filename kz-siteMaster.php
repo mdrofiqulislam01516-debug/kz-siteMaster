@@ -5,7 +5,7 @@
  * Description:       Full site reset + backup/snapshot/restore tools for development environments. Use with extreme caution.
  * Version:           1.0.0
  * Requires at least: 6.0
- * Requires PHP:      8.0
+ * Requires PHP:      7.4
  * Author:            Kodezen Team
  * Author URI:        https://kodezen.com/
  * License:           GPL-2.0-or-later
@@ -71,7 +71,7 @@ final class kz_siteMaster {
         define( 'KZ_SITEMASTER_VERSION', self::version );
         define( 'KZ_SITEMASTER_FILE', __FILE__ );
         define( 'KZ_SITEMASTER_PATH', __DIR__ );
-        define( 'KZ_SITEMASTER_URL', plugins_url( '', KZ_SITEMASTER_FILE ) );
+        define( 'KZ_SITEMASTER_URL', plugins_url( '/', KZ_SITEMASTER_FILE ) );
         define( 'KZ_SITEMASTER_ASSETS', KZ_SITEMASTER_URL . '/assets' );
        
     }

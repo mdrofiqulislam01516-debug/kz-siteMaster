@@ -76,16 +76,42 @@ class kz_siteMaster_site_reset {
         $reactivate_plugins     = ! empty( $_POST[ 'reactivate_plugins' ] );
         $reactivate_this_plugin = ! empty( $_POST[ 'reactivate_this_plugin' ] );
 
+        $protected_plugin  = 'kz-siteMaster/kz-siteMaster.php';
+        $plugin_to_deactivate = array_diff( $active_plugins, [ $protected_plugin ] );
+
+        if ( ! empty( $plugin_to_deactivate ) ) {
+            deactivate_plugins( $plugin_to_deactivate );
+        }
+
         /**
          * Reset all tables except users/usermeta
          */
         
         $tables = $wpdb->get_col( "SHOW TABLES LIKE '{$wpdb->prefix}%'" );
 
-        foreach ( $tables as $table ) {
-            if ( in_array( $table, [ $wpdb->prefix.'users', $wpdb->prefix.'usermeta' ] ) ) continue;
+        $core_tables = [
+            $wpdb->prefix.'commentmeta',
+            $wpdb->prefix.'comments',
+            $wpdb->prefix.'links',
+            $wpdb->prefix.'options',
+            $wpdb->prefix.'postmeta',
+            $wpdb->prefix.'posts',
+            $wpdb->prefix.'termmeta',
+            $wpdb->prefix.'terms',
+            $wpdb->prefix.'term_relationships',
+            $wpdb->prefix.'term_taxonomy'
+        ];
+
+        $custom_tables = array_diff($tables, array_merge($core_tables, [$wpdb->prefix.'users', $wpdb->prefix.'usermeta']));
+
+       foreach ( $custom_tables as $tb ) {
+            $wpdb->query('SET foreign_key_checks = 0');           
+            $wpdb->query( "DROP TABLE IF EXISTS $tb" );
+        }
+        
+        foreach ( $core_tables as $table ) {
             $wpdb->query( "DELETE FROM $table" );
-            $wpdb->query( "ALTER TABLE $table AUTO_INCREMENT = 1" );
+            $wpdb->query( "ALTER TABLE $table" );
         }
 
         /**
@@ -93,24 +119,8 @@ class kz_siteMaster_site_reset {
          */
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        require_once ABSPATH . 'wp-includes/pluggable.php';
-
+        
         $current_user = wp_get_current_user();
-
-        if ( ! $current_user || ! $current_user->ID ) {
-            $admins = get_users([
-                'role'   => 'administrator',
-                'orderby'=> 'ID',
-                'order'  => 'ASC',
-                'number' => 1
-            ]);
-
-            if ( empty( $admins ) ) {
-                wp_send_json_error( [ 'message' => 'No admin user found in database.' ] );
-            }
-
-            $current_user = $admins[0];
-        }
 
         $admin_user  = $current_user->user_login;
         $admin_email = $current_user->user_email;
@@ -135,15 +145,6 @@ class kz_siteMaster_site_reset {
 
         $user_id = $result['user_id'] ?? 0;
 
-        if ( $user_id ) {
-            $wpdb->query( $wpdb->prepare(
-                "UPDATE {$wpdb->users} SET user_pass = %s, user_activation_key = %s WHERE ID = %d",
-                $old_pass,
-                '',
-                $user_id
-            ) );
-        }
-
         delete_user_meta( $user_id, 'default_password_nag' );
         delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
 
@@ -158,24 +159,16 @@ class kz_siteMaster_site_reset {
             switch_theme( $current_theme );
         }
 
-        if ( ! in_array( $protected_plugin, $active_plugins ) ) {
-        $active_plugins[] = $protected_plugin;
-}
-
-
         if ( $reactivate_this_plugin ) {
             activate_plugin( $protected_plugin );
         }
 
         wp_clear_auth_cookie();
         wp_set_auth_cookie( $user_id );
-
-        
+      
         wp_send_json_success( [ 
             'message' => '✅ Site has been successfully reset!', 
             'redirect_url' => admin_url('admin.php?page=kz_siteMaster')
-            ] );
-
-            
+        ] );            
     }
 }
