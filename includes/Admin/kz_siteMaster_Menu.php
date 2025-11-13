@@ -39,7 +39,8 @@ class kz_siteMaster_Menu {
      */
 
     public function kz_siteMaster_render_plugin_page() {
-          
+        
+        include plugin_dir_path(__FILE__) . 'Form/kz_db_reset_form.php'; 
         include plugin_dir_path(__FILE__) . 'kz_reset_form.php'; 
         
     }
