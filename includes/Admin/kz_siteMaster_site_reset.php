@@ -70,11 +70,14 @@ class kz_siteMaster_site_reset {
          * Save plugin/theme
          */
 
-        $active_plugins = get_option( 'active_plugins', ['KZ_siteMaster'] );
         $current_theme  = wp_get_theme()->get_stylesheet();
+        $active_plugin = get_option( 'active_plugin' );
 
-        $reactivate_theme       = ! empty( $_POST[ 'reactivate_theme' ] );
-        $reactivate_plugins     = ! empty( $_POST[ 'reactivate_plugins' ] );
+        if ( ! empty( $active_plugin ) ) {
+            deactivate_plugins( $active_plugin );
+        }
+
+        $reactivate_theme       = ! empty( $_POST[ 'reactivate_theme' ] );    
         $reactivate_this_plugin = ! empty( $_POST[ 'reactivate_this_plugin' ] );
 
         /**
@@ -111,7 +114,7 @@ class kz_siteMaster_site_reset {
         
         $wpdb->query( 'SET FOREIGN_KEY_CHECKS = 1;' );
         wp_cache_flush();
-        $wpdb->queries = []; 
+        
 
         /**
          * wp_install
@@ -147,11 +150,7 @@ class kz_siteMaster_site_reset {
         delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
 
         $protected_plugin = 'kz-siteMaster/kz-siteMaster.php';
-        $plugins_to_restore = array_unique( array_merge( $active_plugins ) );
-
-        if ( $reactivate_plugins ) {
-            update_option( 'active_plugins', $plugins_to_restore );
-        }
+        
 
         if ( $reactivate_theme ) {
             switch_theme( $current_theme );
