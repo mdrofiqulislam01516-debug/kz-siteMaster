@@ -27,10 +27,11 @@ jQuery(document).ready(function($) {
                 if (res.success) {
                     form[0].reset();
                     responseBox.html( '<span style="color:green;">' + res.data.message + '</span>' );
+                    
                     if (res.data.redirect_url) {
                         setTimeout(function() {
                             window.location.href = res.data.redirect_url;
-                        }, 1000);
+                        }, 1500);
                     }
                 } else {
                     responseBox.html( '<span style="color:red;">❌' + res.data.message + '</span>' );

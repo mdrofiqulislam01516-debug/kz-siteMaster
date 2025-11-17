@@ -1,8 +1,9 @@
 <!-- Database Reset -->
     
 <?php
+
 global $wpdb;
-    $core_tables = [
+    $wp_core_tables = [
         'commentmeta',
         'comments',
         'links',
@@ -17,7 +18,7 @@ global $wpdb;
         'users'
     ];
     $prefixe_tables = [];
-        foreach ($core_tables as $table) {
+        foreach ( $wp_core_tables as $table ) {
             $prefixe_tables[] = $wpdb->prefix . $table;
     }
 ?>
@@ -32,7 +33,7 @@ global $wpdb;
           <input type="hidden" name="action" value="kz_siteMaster_db_table_reset">
 
             <ul>
-            <?php foreach($prefixe_tables as $table): ?>
+            <?php foreach( $prefixe_tables as $table ): ?>
                 <li>
                     <label>
                         <input type="checkbox" name="tables[]" value="<?php echo esc_attr( $table ); ?>">

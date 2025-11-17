@@ -23,7 +23,7 @@ class kz_siteMaster_db_reset {
          * ajax
          */
 
-        add_action('wp_ajax_kz_siteMaster_db_table_reset', [ $this, 'kz_siteMaster_db_table_reset_form' ] );
+        add_action( 'wp_ajax_kz_siteMaster_db_table_reset', [ $this, 'kz_siteMaster_db_table_reset_form' ] );
 
     }
 
@@ -57,15 +57,15 @@ class kz_siteMaster_db_reset {
             wp_send_json_error( [ 'message' => 'Permission denied' ] );   
         }
 
-        if ( ! check_ajax_referer('kz_db_reset_nonce', 'nonce') ) {
+        if ( ! check_ajax_referer( 'kz_db_reset_nonce', 'nonce' ) ) {
             wp_send_json_error( [ 'message' => 'Nonce verification failed' ] );
         }
     
-        if ( empty($_POST[ 'kz_db_reset_confirm' ] ) || $_POST[ 'kz_db_reset_confirm' ] !== 'reset' ) {
+        if ( empty( $_POST[ 'kz_db_reset_confirm' ] ) || $_POST[ 'kz_db_reset_confirm' ] !== 'reset' ) {
             wp_send_json_error( [ 'message' => 'You must type "reset" to confirm' ] );
         }
        
-        $tables = isset($_POST[ 'tables' ] ) ? (array) $_POST[ 'tables' ] : [];
+        $tables = isset( $_POST[ 'tables' ] ) ? (array) $_POST[ 'tables' ] : [];
         if ( empty( $tables ) ) {
             wp_send_json_error( [ 'message' => 'No tables selected' ] );
         }
@@ -88,9 +88,9 @@ class kz_siteMaster_db_reset {
         $tables = $wpdb->get_col( "SHOW TABLES LIKE '{$wpdb->prefix}%'" );
 
         $wpdb->suppress_errors( true );
-        $wpdb->query('SET foreign_key_checks = 0');
+        $wpdb->query( 'SET foreign_key_checks = 0' );
 
-        foreach ($tables as $table) {
+        foreach ( $tables as $table ) {
 
             $table = sanitize_text_field( $table );
 
@@ -101,7 +101,7 @@ class kz_siteMaster_db_reset {
             if ( in_array( $table, [ $wpdb->prefix. 'users', $wpdb->prefix. 'usermeta' ] ) ) {
                 continue;
             }
-            $wpdb->query("TRUNCATE TABLE `$table`");
+            $wpdb->query( "TRUNCATE TABLE `$table`" );
         }
 
         $wpdb->query( 'SET foreign_key_checks = 1;' );
@@ -118,17 +118,17 @@ class kz_siteMaster_db_reset {
 
         $admin_user  = $current_user->user_login;
         $admin_email = $current_user->user_email;
-        $site_title  = get_option('name');
-        $blog_public = get_option('blog_public');
-        $wplang      = get_option('WPLANG');
+        $site_title  = get_option( 'name' );
+        $blog_public = get_option( 'blog_public' );
+        $password    = wp_generate_password( 20, true, true );
+        $wplang      = get_option( 'WPLANG' );
 
         $result = wp_install(
             $site_title,
             $admin_user,
             $admin_email,
             $blog_public,
-            '',
-            wp_generate_password(20, true, true),
+            $password,
             $wplang
         );
 
@@ -142,6 +142,7 @@ class kz_siteMaster_db_reset {
         delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
         
         $active_plugins = 'kz-siteMaster/kz-siteMaster.php';
+
         if ( $reactivate_plugin_theme ) {
             update_option( 'active_plugins', $active_plugins );
             switch_theme( $current_theme );

@@ -21,8 +21,8 @@ jQuery(document).ready(function($) {
             data   : {
                 action                 : 'kz_siteMaster_handle_reset',
                 nonce                  : kzsiteMaster.nonce,
-                reactivate_theme       : form.find('[name="reactivate_theme"]').is(':checked') ? 1 : 0,   
-                reactivate_this_plugin : form.find('[name="reactivate_this_plugin"]').is(':checked') ? 1 : 0,
+                reactivate_theme       : form.find( '[name="reactivate_theme"]' ).is( ':checked' ) ? 1 : 0,   
+                reactivate_this_plugin : form.find( '[name="reactivate_this_plugin"]' ).is( ':checked' ) ? 1 : 0,
                 kz_reset_confirm       : confirmVal
             },
             success: function(res) {

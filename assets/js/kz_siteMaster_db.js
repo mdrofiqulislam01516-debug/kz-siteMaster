@@ -15,7 +15,7 @@ jQuery(document).ready(function($){
         var form = $(this);
         var responseBox = $( '#kz-db-reset-response' );
 
-        var confirmVal = form.find('[name="kz_db_reset_confirm"]').val();
+        var confirmVal = form.find( '[name="kz_db_reset_confirm"]' ).val();
 
         if ( ! confirmVal || confirmVal.toLowerCase() !== 'reset' ) {
             responseBox.html( '<span style="color:red;">❌ You must type "reset" to confirm.</span>' );

@@ -40,7 +40,7 @@ class kz_siteMaster_site_reset {
             true
         );
 
-        wp_localize_script('kz-siteMaster-reset', 'kzsiteMaster', [
+        wp_localize_script( 'kz-siteMaster-reset', 'kzsiteMaster', [
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce' => wp_create_nonce( 'kz_reset_nonce' ),
         ] );
@@ -71,7 +71,7 @@ class kz_siteMaster_site_reset {
          */
 
         $current_theme  = wp_get_theme()->get_stylesheet();
-        $active_plugin = get_option( 'active_plugin' );
+        $active_plugin  = get_option( 'active_plugin' );
 
         if ( ! empty( $active_plugin ) ) {
             deactivate_plugins( $active_plugin );
@@ -86,29 +86,29 @@ class kz_siteMaster_site_reset {
         
         $tables = $wpdb->get_col( "SHOW TABLES LIKE '{$wpdb->prefix}%'" );
 
-        $core_tables = [
-            $wpdb->prefix.'commentmeta',
-            $wpdb->prefix.'comments',
-            $wpdb->prefix.'links',
-            $wpdb->prefix.'options',
-            $wpdb->prefix.'postmeta',
-            $wpdb->prefix.'posts',
-            $wpdb->prefix.'termmeta',
-            $wpdb->prefix.'terms',
-            $wpdb->prefix.'term_relationships',
-            $wpdb->prefix.'term_taxonomy'
+        $wp_core_tables = [
+            'commentmeta',
+            'comments',
+            'links',
+            'options',
+            'postmeta',
+            'posts',
+            'termmeta',
+            'terms',
+            'term_relationships',
+            'term_taxonomy'
         ];
 
-        $custom_tables = array_diff($tables, array_merge($core_tables, [$wpdb->prefix.'users', $wpdb->prefix.'usermeta']));
+        $custom_tables = array_diff( $tables, array_merge( $wp_core_tables, [ $wpdb->prefix.'users', $wpdb->prefix.'usermeta' ] ) );
 
         $wpdb->suppress_errors( true );
-        $wpdb->query('SET foreign_key_checks = 0');           
+        $wpdb->query( 'SET foreign_key_checks = 0' );           
         
         foreach ( $custom_tables as $tb ) {
             $wpdb->query( "DROP TABLE IF EXISTS $tb" );
         }
 
-        foreach ( $core_tables as $table ) {
+        foreach ( $wp_core_tables as $table ) {
             $wpdb->query( "TRUNCATE TABLE $table" );
         }
         
@@ -126,17 +126,17 @@ class kz_siteMaster_site_reset {
 
         $admin_user  = $current_user->user_login;
         $admin_email = $current_user->user_email;
-        $site_title  = get_option('name');
-        $blog_public = get_option('blog_public');
-        $wplang      = get_option('WPLANG');
+        $site_title  = get_option( 'name' );
+        $blog_public = get_option( 'blog_public' );
+        $password    = wp_generate_password( 20, true, true );
+        $wplang      = get_option( 'WPLANG' );
 
         $result = wp_install(
             $site_title,
             $admin_user,
             $admin_email,
             $blog_public,
-            '',
-            md5(wp_rand()),
+            $password,
             $wplang
         );
 
@@ -144,13 +144,12 @@ class kz_siteMaster_site_reset {
             wp_send_json_error( [ 'message' => $result->get_error_message() ] );
         }
 
-        $user_id = $result['user_id'] ?? 0;
+        $user_id = $result[ 'user_id' ] ?? 0;
 
         delete_user_meta( $user_id, 'default_password_nag' );
         delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
 
-        $protected_plugin = 'kz-siteMaster/kz-siteMaster.php';
-        
+        $protected_plugin = 'kz-siteMaster/kz-siteMaster.php'; 
 
         if ( $reactivate_theme ) {
             switch_theme( $current_theme );
@@ -165,7 +164,7 @@ class kz_siteMaster_site_reset {
  
         wp_send_json_success( [ 
             'message' => '✅ Site has been successfully reset!', 
-            'redirect_url' => admin_url('admin.php?page=kz_siteMaster')
+            'redirect_url' => admin_url('admin.php?page=kz_siteMaster' )
         ] );            
     }
 }
