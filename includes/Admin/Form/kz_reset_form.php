@@ -1,5 +1,5 @@
 <!-- Site Reset -->
-
+<?php include plugin_dir_path(__FILE__) . 'kz_siteMaster_header.php'; ?>
 <div class="wrap">
     <h1>Site Reset</h1>
     <form id="kz-site-reset-form">
@@ -11,8 +11,9 @@
 
         <p>Type <strong>"reset"</strong> to confirm site reset.</p>
         <input type="text" name="kz_reset_confirm" placeholder="Type reset to confirm" style="width:250px;" required>
-        <p><button class="button button-danger">Reset Site</button></p>
+        <p><button class="button button-primary">Reset Site</button></p>
     </form>
     <div id="kz-reset-response"></div>
 </div>
- 
+<?php include plugin_dir_path(__FILE__) . 'kz_siteMaster_footer.php'; ?>
+<hr>

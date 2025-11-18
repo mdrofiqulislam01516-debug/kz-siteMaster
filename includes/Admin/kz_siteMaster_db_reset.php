@@ -1,6 +1,9 @@
 <?php
 namespace kodezen\siteMaster\Admin;
 
+require_once __DIR__ . '/kz_siteMaster_Helpers.php';
+use kodezen\siteMaster\Admin\kz_siteMaster_Helpers;
+
 /**
  * DB Tables Reset class
  */ 
@@ -35,9 +38,9 @@ class kz_siteMaster_db_reset {
 
         wp_enqueue_script(
             'kz-siteMaster-db-reset',
-            KZ_SITEMASTER_ASSETS . '/js/kz_siteMaster_db.js',
+            KZ_SITEMASTER_ASSETS . '/js/kz_siteMaster.js',
             [ 'jquery' ],
-            filemtime( KZ_SITEMASTER_PATH . '/assets/js/kz_siteMaster_db.js' ),
+            filemtime( KZ_SITEMASTER_PATH . '/assets/js/kz_siteMaster.js' ),
             true
         );
 
@@ -85,52 +88,18 @@ class kz_siteMaster_db_reset {
 
         $reactivate_plugin_theme = ! empty( $_POST[ 'reactivate' ] );
 
-        $tables = $wpdb->get_col( "SHOW TABLES LIKE '{$wpdb->prefix}%'" );
-
-        $wpdb->suppress_errors( true );
-        $wpdb->query( 'SET foreign_key_checks = 0' );
-
-        foreach ( $tables as $table ) {
-
-            $table = sanitize_text_field( $table );
-
-            if ( strpos( $table, $wpdb->prefix ) !== 0 ) {
-                continue;
-            }
-            
-            if ( in_array( $table, [ $wpdb->prefix. 'users', $wpdb->prefix. 'usermeta' ] ) ) {
-                continue;
-            }
-            $wpdb->query( "TRUNCATE TABLE `$table`" );
-        }
-
-        $wpdb->query( 'SET foreign_key_checks = 1;' );
-        wp_cache_flush();
+        kz_siteMaster_Helpers::disable_fk();
+        $tables = kz_siteMaster_Helpers::ignore_tables($tables);
+        kz_siteMaster_Helpers::truncate_tables($tables);
+        kz_siteMaster_Helpers::enable_fk();
+        kz_siteMaster_Helpers::flush_cache();
 
 
         /**
          * wp-_install
          */
         
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        
-        $current_user = wp_get_current_user();
-
-        $admin_user  = $current_user->user_login;
-        $admin_email = $current_user->user_email;
-        $site_title  = get_option( 'name' );
-        $blog_public = get_option( 'blog_public' );
-        $password    = wp_generate_password( 20, true, true );
-        $wplang      = get_option( 'WPLANG' );
-
-        $result = wp_install(
-            $site_title,
-            $admin_user,
-            $admin_email,
-            $blog_public,
-            $password,
-            $wplang
-        );
+        $result = kz_siteMaster_Helpers::reinstall_wp();
 
         if ( is_wp_error( $result ) ) {
             wp_send_json_error( [ 'message' => $result->get_error_message() ] );

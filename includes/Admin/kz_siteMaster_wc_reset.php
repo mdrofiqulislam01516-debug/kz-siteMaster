@@ -1,6 +1,9 @@
 <?php
 namespace kodezen\siteMaster\Admin;
 
+require_once __DIR__ . '/kz_siteMaster_Helpers.php';
+use kodezen\siteMaster\Admin\kz_siteMaster_Helpers;
+
 /**
  * DB Tables Reset class
  */
@@ -35,9 +38,9 @@ class kz_siteMaster_wc_reset {
 
         wp_enqueue_script(
             'kz-siteMaster-wc-reset',
-            KZ_SITEMASTER_ASSETS . '/js/kz_siteMaster_wc.js',
+            KZ_SITEMASTER_ASSETS . '/js/kz_siteMaster.js',
             [ 'jquery' ],
-            filemtime( KZ_SITEMASTER_PATH . '/assets/js/kz_siteMaster_wc.js' ),
+            filemtime( KZ_SITEMASTER_PATH . '/assets/js/kz_siteMaster.js' ),
             true
         );
 
@@ -65,7 +68,7 @@ class kz_siteMaster_wc_reset {
             wp_send_json_error( [ 'message' => 'You must type "reset" to confirm' ] );
         }
         
-        global $wpdb;
+        
 
         if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
             deactivate_plugins( 'woocommerce/woocommerce.php' );
@@ -108,17 +111,10 @@ class kz_siteMaster_wc_reset {
             'wp_woocommerce_tax_rate_locations'
         ];
 
-        $wpdb->suppress_errors( true );
-        $wpdb->query( 'SET foreign_key_checks = 0' ); 
-
-        foreach ( $wc_tables as $table ) {
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) === $table ) {
-                $wpdb->query( "DROP TABLE `$table`" );
-            }
-        }
-
-        $wpdb->query( 'SET FOREIGN_KEY_CHECKS = 1;' );
-        wp_cache_flush();
+        kz_siteMaster_Helpers::disable_fk();
+        kz_siteMaster_Helpers::drop_tables($wc_tables);
+        kz_siteMaster_Helpers::enable_fk();
+        kz_siteMaster_Helpers::flush_cache();
         
         wp_send_json_success( [
             'message' => '✅ WooCommerce Plugin have been reset successfully!',

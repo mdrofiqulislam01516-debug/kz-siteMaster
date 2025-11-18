@@ -85,6 +85,7 @@ final class kz_siteMaster {
     public function kz_siteMaster_init() {
 
             new kodezen\siteMaster\Admin\kz_siteMaster_Menu();
+            new kodezen\siteMaster\Admin\kz_siteMaster_Helpers();
             new kodezen\siteMaster\Admin\kz_siteMaster_db_reset();
             new kodezen\siteMaster\Admin\kz_siteMaster_wc_reset();
             new kodezen\siteMaster\Admin\kz_siteMaster_site_reset();

@@ -2,6 +2,9 @@
     
 <?php
 
+ include plugin_dir_path(__FILE__) . 'kz_siteMaster_header.php';
+
+
 global $wpdb;
     $wp_core_tables = [
         'commentmeta',
@@ -61,4 +64,5 @@ global $wpdb;
         <div id="kz-db-reset-response"></div>
 </div>
 
+<?php include plugin_dir_path(__FILE__) . 'kz_siteMaster_footer.php'; ?>
  <br><br><hr>

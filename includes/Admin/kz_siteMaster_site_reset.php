@@ -1,6 +1,9 @@
 <?php
 namespace kodezen\siteMaster\Admin;
 
+require_once __DIR__ . '/kz_siteMaster_Helpers.php';
+use kodezen\siteMaster\Admin\kz_siteMaster_Helpers;
+
 /**
  * Site Reset class
  */
@@ -101,44 +104,17 @@ class kz_siteMaster_site_reset {
 
         $custom_tables = array_diff( $tables, array_merge( $wp_core_tables, [ $wpdb->prefix.'users', $wpdb->prefix.'usermeta' ] ) );
 
-        $wpdb->suppress_errors( true );
-        $wpdb->query( 'SET foreign_key_checks = 0' );           
+        kz_siteMaster_Helpers::disable_fk();
+        kz_siteMaster_Helpers::drop_tables($custom_tables);
+        kz_siteMaster_Helpers::truncate_tables($wp_core_tables);
+        kz_siteMaster_Helpers::enable_fk();
+        kz_siteMaster_Helpers::flush_cache();
         
-        foreach ( $custom_tables as $tb ) {
-            $wpdb->query( "DROP TABLE IF EXISTS $tb" );
-        }
-
-        foreach ( $wp_core_tables as $table ) {
-            $wpdb->query( "TRUNCATE TABLE $table" );
-        }
-        
-        $wpdb->query( 'SET FOREIGN_KEY_CHECKS = 1;' );
-        wp_cache_flush();
-        
-
         /**
          * wp_install
          */
 
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        
-        $current_user = wp_get_current_user();
-
-        $admin_user  = $current_user->user_login;
-        $admin_email = $current_user->user_email;
-        $site_title  = get_option( 'name' );
-        $blog_public = get_option( 'blog_public' );
-        $password    = wp_generate_password( 20, true, true );
-        $wplang      = get_option( 'WPLANG' );
-
-        $result = wp_install(
-            $site_title,
-            $admin_user,
-            $admin_email,
-            $blog_public,
-            $password,
-            $wplang
-        );
+        $result = kz_siteMaster_Helpers::reinstall_wp();
 
         if ( is_wp_error( $result ) ) {
             wp_send_json_error( [ 'message' => $result->get_error_message() ] );
@@ -149,7 +125,7 @@ class kz_siteMaster_site_reset {
         delete_user_meta( $user_id, 'default_password_nag' );
         delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
 
-        $protected_plugin = 'kz-siteMaster/kz-siteMaster.php'; 
+        $protected_plugin = 'kz-siteMaster/kz-siteMaster.php';
 
         if ( $reactivate_theme ) {
             switch_theme( $current_theme );

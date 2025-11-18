@@ -1,4 +1,5 @@
 <!-- WooCommerce Plugin Reset -->
+<?php include plugin_dir_path(__FILE__) . 'kz_siteMaster_header.php'; ?>
 
 <div class="wrap">
     <h1>WooCommerce Plugin Reset</h1>
@@ -13,4 +14,5 @@
     </form>
     <div id="kz-wc-reset-response"></div>
 </div>
+<?php include plugin_dir_path(__FILE__) . 'kz_siteMaster_footer.php'; ?>
 <br><br><hr>
