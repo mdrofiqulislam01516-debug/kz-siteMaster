@@ -112,7 +112,7 @@ class kz_siteMaster_db_reset {
         delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
 
         if ( $reactivate_plugin_theme ) {
-            update_option( 'active_plugins', $protected_plugin );
+            update_option( 'active_plugins', [ $protected_plugin ] );
             switch_theme( $current_theme );
         }
        
