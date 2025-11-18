@@ -68,7 +68,7 @@ class kz_siteMaster_wc_reset {
             wp_send_json_error( [ 'message' => 'You must type "reset" to confirm' ] );
         }
         
-        
+        $protected_plugin = 'kz-siteMaster/kz-siteMaster.php';
 
         if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
             deactivate_plugins( 'woocommerce/woocommerce.php' );
@@ -115,13 +115,14 @@ class kz_siteMaster_wc_reset {
         kz_siteMaster_Helpers::drop_tables($wc_tables);
         kz_siteMaster_Helpers::enable_fk();
         kz_siteMaster_Helpers::flush_cache();
+
+        if ( ! in_array( $protected_plugin, get_option( 'activate_plugins', [] ) ) ) {
+            activate_plugin( $protected_plugin );
+        }
         
         wp_send_json_success( [
             'message' => '✅ WooCommerce Plugin have been reset successfully!',
             'redirect_url' => admin_url( 'admin.php?page=kz_siteMaster' )
         ] );
-
     }
 }
-
-

@@ -80,10 +80,11 @@ class kz_siteMaster_db_reset {
          */
 
         $current_theme  = wp_get_theme()->get_stylesheet();
-        $active_plugin = get_option( 'active_plugin' );
+        $protected_plugin = 'kz-siteMaster/kz-siteMaster.php';
+        $active_plugins = get_option( 'active_plugins' );
 
-        if ( ! empty( $active_plugin ) ) {
-            deactivate_plugins( $active_plugin );
+        if ( ! empty( $active_plugins ) ) {
+            deactivate_plugins( $active_plugins );
         }
 
         $reactivate_plugin_theme = ! empty( $_POST[ 'reactivate' ] );
@@ -109,11 +110,9 @@ class kz_siteMaster_db_reset {
 
         delete_user_meta( $user_id, 'default_password_nag' );
         delete_user_meta( $user_id, $wpdb->prefix . 'default_password_nag' );
-        
-        $active_plugins = 'kz-siteMaster/kz-siteMaster.php';
 
         if ( $reactivate_plugin_theme ) {
-            update_option( 'active_plugins', $active_plugins );
+            update_option( 'active_plugins', $protected_plugin );
             switch_theme( $current_theme );
         }
        
